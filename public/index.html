@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Code your Program</h1>
+    <br/>
+    <form id="codeform">
+        <label for="language">Type of the language</label>
+        <select name="language" id="language">
+        <option value="cpp" select>C++</option>
+        <option value="c">C</option>
+        <option value="py">Python</option>
+        <option value="php">PHP</option>
+      </select>
+      <br/>
+      <label for="code">Code</label>
+      <br/>
+     <textarea name="code" rows="10" cols="80" id="code"></textarea>
+      <br/>
+      <button type="submit" id="formsubmit">Submit</button>
+    </form>
+    <br/>
+    <p id="response"></p>
+    <p id="error"></p>
+</body>
+<script>
+let submit = document.querySelector("#formsubmit");
+let content = document.querySelector("#response");
+let error = document.querySelector("#error");
+
+submit.addEventListener("click",async(e)=>{
+e.preventDefault();
+let code = document.querySelector("#code").value;
+let language = document.querySelector("#language").value
+
+try{
+    let lastexecuted = JSON.parse(localStorage.getItem("lastexecuted"))||false;
+    let id = language==lastexecuted?.language?lastexecuted?.jobid:false;
+let response = await fetch("http://localhost:3000/code",{
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    headers: {
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+    code:code,
+    language:language,
+    jobid:id,
+})
+})
+let data = await response.json()
+localStorage.setItem("lastexecuted",JSON.stringify({language:data.language,jobid:data.jobid}));
+if(data.status){
+    content.innerHTML = data.result;
+    error.innerHTML=""
+}
+else{
+    error.innerHTML = data.result;
+    content.innerHTML = ""
+}
+}
+catch(err){
+    error.innerHTML="error occured"
+}
+})
+
+</script>
+</html>
