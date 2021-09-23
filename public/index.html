@@ -25,7 +25,10 @@
       <button type="submit" id="formsubmit">Submit</button>
     </form>
     <br/>
-    <p id="response"></p>
+    <label for="inputs">Standart Input console</label><br/>
+    <textarea name="inputs" rows="5" cols="40" id="inputs"></textarea>
+    <br/>
+    <p id="response" ></p>
     <p id="error"></p>
 </body>
 <script>
@@ -37,6 +40,7 @@ submit.addEventListener("click",async(e)=>{
 e.preventDefault();
 let code = document.querySelector("#code").value;
 let language = document.querySelector("#language").value
+let inputs = document.querySelector("#inputs").value
 
 try{
     let lastexecuted = JSON.parse(localStorage.getItem("lastexecuted"))||false;
@@ -47,9 +51,12 @@ let response = await fetch("http://localhost:3000/code",{
         "Content-Type": "application/json",
     },
     body: JSON.stringify({
+    is_code:code?true:false,
     code:code,
     language:language,
     jobid:id,
+    is_input:inputs?true:false,
+    inputs:inputs,
 })
 })
 let data = await response.json()

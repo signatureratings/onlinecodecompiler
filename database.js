@@ -7,7 +7,7 @@ function databaseConnection() {
   });
 
   const db = mongoose.connection;
-  db.on("error", (error) => console.error(error));
+  db.on("error", (error) => console.error("small error occured", error));
   db.once("open", () => console.log("Connected to Mongoose"));
 }
 

@@ -4,7 +4,8 @@ const { exec } = require("child_process");
 const env = require("dotenv");
 env.config();
 
-const createfile = (jobid, language, code) => {
+const createfile = (jobid, language, code, is_input, inputs) => {
+  console.log(jobid, language, code, is_input, inputs);
   let filename = `${jobid}.${language}`;
   let create = false;
   switch (language) {
@@ -34,31 +35,58 @@ const createfile = (jobid, language, code) => {
         reject(err);
         return;
       }
-      console.log("File created");
-      resolve(filename);
     });
+    if (is_input) {
+      fs.writeFile(`temp/${jobid}.txt`, inputs, { flag: "w" }, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        console.log("Both program and input files are created");
+        resolve(filename);
+        return;
+      });
+    }
+    console.log("only program is created");
+    resolve(filename);
   });
 };
 
-const executefile = (filename) => {
+const executefile = (filename, is_input) => {
   let file = filename.split(".");
   let jobid = file[0];
   let language = file[1];
   let command;
   switch (language) {
     case "cpp":
+      if (is_input) {
+        command = `cd ${process.env.TEMP_PATH} && g++ ${filename} -o ${jobid} && ${jobid}.exe < ${jobid}.txt`;
+        break;
+      }
       command = `cd ${process.env.TEMP_PATH} && g++ ${filename} -o ${jobid} && ${jobid}.exe`;
       break;
     case "c":
+      if (is_input) {
+        command = `cd ${process.env.TEMP_PATH} && g++ ${filename} -o ${jobid} && ${jobid}.exe < ${jobid}.txt`;
+        break;
+      }
       command = `cd ${process.env.TEMP_PATH} && g++ ${filename} -o ${jobid} && ${jobid}.exe`;
       break;
     case "py":
-      let temp = path.join(process.env.TEMP_PATH, filename);
+      temp = path.join(process.env.TEMP_PATH, filename);
+      if (is_input) {
+        command = `cd ${process.env.TEMP_PATH} && python ${filename} < ${jobid}.txt`;
+        break;
+      }
       command = `python -u ${temp}`;
       break;
     case "php":
-      let t = path.join(process.env.TEMP_PATH, filename);
-      command = `php ${t}`;
+      temp = path.join(process.env.TEMP_PATH, filename);
+      if (is_input) {
+        command = `cd ${process.env.TEMP_PATH} && php ${filename} < ${jobid}.txt`;
+        break;
+      }
+      command = `php ${temp}`;
       break;
     default:
       command = false;
@@ -77,6 +105,7 @@ const executefile = (filename) => {
       }
       console.log("got output");
       let data = { stdout, stderr, jobid };
+      console.log(stdout, stderr);
       resolve(data);
     });
   });
